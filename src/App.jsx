@@ -1,0 +1,115 @@
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+
+import AuthLayout from "./layouts/AuthLayout.jsx";
+import DashboardLayout from "./layouts/DashboardLayout.jsx";
+import AdminLayout from "./layouts/AdminLayout.jsx";
+
+/* ================= USER PAGES ================= */
+import Login from "./pages/Login.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import Profile from "./pages/Profile.jsx";
+import Notifications from "./pages/Notifications.jsx";
+import Tasks from "./pages/Tasks.jsx";
+import Forms from "./pages/Forms.jsx";
+import Invoices from "./pages/Invoices.jsx";
+import IdCreation from "./pages/IdCreation.jsx";
+import EpfoRequests from "./pages/EpfoRequests.jsx";
+import Reports from "./pages/Reports.jsx";
+import Payments from "./pages/Payments.jsx";
+import Payslip from "./pages/Payslip.jsx";
+
+/* ================= ADMIN PAGES ================= */
+import AdminLogin from "./admin/login.jsx";
+import AdminDashboard from "./admin/Dashboard.jsx";
+import profile from "./admin/profile.jsx";
+import AdminNotifications from "./admin/Notifications.jsx";
+
+
+export default function App() {
+  const navigate = useNavigate();
+
+  /* ============ USER AUTH ============ */
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  /* ============ ADMIN AUTH ============ */
+  const [admin, setAdmin] = useState(() => {
+    const saved = localStorage.getItem("admin");
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  /* USER LOGIN REDIRECT */
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+      navigate("/");
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
+
+  /* ADMIN LOGIN REDIRECT */
+  useEffect(() => {
+    if (admin) {
+      localStorage.setItem("admin", JSON.stringify(admin));
+      navigate("/admin/dashboard");
+    } else {
+      localStorage.removeItem("admin");
+    }
+  }, [admin]);
+
+  const requireAuth = (element) =>
+    user ? element : <Navigate to="/login" replace />;
+
+  const requireAdmin = (element) =>
+    admin ? element : <Navigate to="/admin/login" replace />;
+
+  return (
+    <Routes>
+
+      {/* ================= USER AUTH ================= */}
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login onLogin={setUser} />} />
+      </Route>
+
+      {/* ================= USER DASHBOARD ================= */}
+      <Route
+        element={
+          <DashboardLayout
+            user={user}
+            onLogout={() => setUser(null)}
+          />
+        }
+      >
+        <Route path="/" element={requireAuth(<Dashboard />)} />
+        <Route path="/profile" element={requireAuth(<Profile />)} />
+        <Route path="/notifications" element={requireAuth(<Notifications />)} />
+        <Route path="/tasks" element={requireAuth(<Tasks user={user} />)} />
+        <Route path="/forms" element={requireAuth(<Forms />)} />
+        <Route path="/invoices" element={requireAuth(<Invoices />)} />
+        <Route path="/id-creation" element={requireAuth(<IdCreation />)} />
+        <Route path="/epfo-requests" element={requireAuth(<EpfoRequests />)} />
+        <Route path="/reports" element={requireAuth(<Reports />)} />
+        <Route path="/payments" element={requireAuth(<Payments />)} />
+        <Route path="/payslip" element={requireAuth(<Payslip user={user} />)} />
+      </Route>
+
+     {/* ================= ADMIN ================= */}
+<Route path="/admin/login" element={<AdminLogin onLogin={setAdmin} />} />
+
+<Route
+  path="/admin"
+  element={requireAdmin(<AdminLayout />)}
+>
+  <Route path="dashboard" element={<AdminDashboard />} />
+  <Route path="profile" element={<profile />} />
+  <Route path="notifications" element={<AdminNotifications />} />
+</Route>
+
+
+    </Routes>
+  );
+}
