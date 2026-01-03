@@ -21,9 +21,9 @@ export default function Invoices() {
   const [loading, setLoading] = useState(true);
 
   const [open, setOpen] = useState(false);
-  const [nextInvoiceNo, setNextInvoiceNo] = useState("INV001");
 
   const [form, setForm] = useState({
+    invoice_no: "",
     invoice_date: "",
     amount: "",
     upload_file: null,
@@ -52,36 +52,20 @@ export default function Invoices() {
       });
   };
 
-  /* ---------- LOAD NEXT INVOICE NO ---------- */
-  const loadNextInvoiceNo = () => {
-    if (!employerId) return;
-
-    fetch(
-      `${API}/invoices/next_invoice_no.php?employer_id=${employerId}&_=${Date.now()}`,
-      { cache: "no-store" }
-    )
-      .then((res) => res.json())
-      .then((d) => setNextInvoiceNo(d.invoice_no || "INV001"))
-      .catch(() => setNextInvoiceNo("INV001"));
-  };
-
   useEffect(() => {
     loadInvoices();
   }, [employerId]);
 
-  useEffect(() => {
-    if (open) loadNextInvoiceNo();
-  }, [open]);
-
   /* ---------- CREATE INVOICE ---------- */
   const createInvoice = async () => {
-    if (!form.invoice_date || !form.amount) {
-      alert("Invoice date and amount required");
+    if (!form.invoice_no || !form.invoice_date || !form.amount) {
+      alert("Invoice number, date and amount are required");
       return;
     }
 
     let payload = {
       employer_id: employerId,
+      invoice_no: form.invoice_no,
       invoice_date: form.invoice_date,
       amount: form.amount,
     };
@@ -99,7 +83,7 @@ export default function Invoices() {
       .then((res) => res.json())
       .then(() => {
         setOpen(false);
-        setForm({ invoice_date: "", amount: "", upload_file: null });
+        setForm({ invoice_no: "", invoice_date: "", amount: "", upload_file: null });
         loadInvoices();
       });
   };
@@ -226,9 +210,13 @@ export default function Invoices() {
             <h4 className="font-semibold text-lg">Create Invoice</h4>
 
             <input
-              disabled
-              className="w-full border rounded px-3 py-2 bg-gray-100"
-              value={nextInvoiceNo}
+              type="text"
+              className="w-full border rounded px-3 py-2"
+              placeholder="Invoice Number (e.g., INV001)"
+              value={form.invoice_no}
+              onChange={(e) =>
+                setForm({ ...form, invoice_no: e.target.value })
+              }
             />
 
             <input

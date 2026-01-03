@@ -22,9 +22,16 @@ import Addpayslip from "./pages/AddPayslip.jsx";
 /* ================= ADMIN PAGES ================= */
 import AdminLogin from "./admin/login.jsx";
 import AdminDashboard from "./admin/Dashboard.jsx";
-import profile from "./admin/profile.jsx";
+import AdminProfile from "./admin/profile.jsx";
+import AdminTasks from "./admin/Tasks.jsx";
+import AdminForms from "./admin/Forms.jsx";
+import AdminReports from "./admin/Reports.jsx";
+import AdminInvoices from "./admin/Invoices.jsx";
 import AdminNotifications from "./admin/Notifications.jsx";
-
+import AdminPayments from "./admin/payment.jsx";
+import AdminEpfoRequest from "./admin/EpfoRequests.jsx";
+import AdminEmployee from "./admin/employee.jsx"; // ✅ REQUIRED
+import AdminPayslip from "./admin/Payslip.jsx";
 
 export default function App() {
   const navigate = useNavigate();
@@ -45,7 +52,7 @@ export default function App() {
   useEffect(() => {
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
-      navigate("/");
+navigate("/");
     } else {
       localStorage.removeItem("user");
     }
@@ -102,14 +109,25 @@ export default function App() {
      {/* ================= ADMIN ================= */}
 <Route path="/admin/login" element={<AdminLogin onLogin={setAdmin} />} />
 
-<Route
-  path="/admin"
-  element={requireAdmin(<AdminLayout />)}
->
-  <Route path="dashboard" element={<AdminDashboard />} />
-  <Route path="profile" element={<profile />} />
+  {/* ================= ADMIN DASHBOARD ================= */}
+      <Route
+        path="/admin"
+        element={requireAdmin(
+          <AdminLayout onLogout={() => setAdmin(null)} />
+        )}
+      >
+        <Route path="dashboard" element={<AdminDashboard />} />
+  <Route path="profile" element={<AdminProfile />} />
+  <Route path="tasks" element={<AdminTasks />} />
+  <Route path="forms" element={<AdminForms />} />
+  <Route path="reports" element={<AdminReports />} />
+  <Route path="invoices" element={<AdminInvoices />} />
   <Route path="notifications" element={<AdminNotifications />} />
-</Route>
+  <Route path="payments" element={<AdminPayments />} />
+  <Route path="epfo-requests" element={<AdminEpfoRequest />} /> {/* ✅ FIX */}
+  <Route path="employees" element={<AdminEmployee />} />
+   <Route path="payslip" element={<AdminPayslip />} />
+      </Route>
 
 
     </Routes>

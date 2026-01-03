@@ -70,7 +70,8 @@ export default function AdminLayout() {
             <Link onClick={() => setOpen(false)} className="block p-2 rounded bg-orange-50 text-orange-600" to="/admin/dashboard">Dashboard</Link>
             <Link onClick={() => setOpen(false)} className="block p-2 rounded hover:bg-gray-100" to="/admin/profile">Profile</Link>
             <Link onClick={() => setOpen(false)} className="block p-2 rounded hover:bg-gray-100" to="/admin/notifications">Notifications</Link>
-            <Link onClick={() => setOpen(false)} className="block p-2 rounded hover:bg-gray-100" to="/admin/tasks">Tasks</Link>
+            {/* <Link onClick={() => setOpen(false)} className="block p-2 rounded hover:bg-gray-100" to="/admin/tasks">Tasks</Link> */}
+            <Link onClick={() => setOpen(false)} className="block p-2 rounded hover:bg-gray-100" to="/admin/forms">Forms</Link>
             <Link onClick={() => setOpen(false)} className="block p-2 rounded hover:bg-gray-100" to="/admin/employees">Add Employee</Link>
             <Link onClick={() => setOpen(false)} className="block p-2 rounded hover:bg-gray-100" to="/admin/invoices">Invoices</Link>
             <Link onClick={() => setOpen(false)} className="block p-2 rounded hover:bg-gray-100" to="/admin/payments">Payments</Link>
