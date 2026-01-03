@@ -1,42 +1,114 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import ProgressBar from "../components/ProgressBar";
-import { tasks, invoices } from "../data/mock";
+
+const API =
+  "https://projects.growtechnologies.in/srisaigroups/api/admin/dashboard.php";
 
 export default function AdminDashboard() {
-  const avgProgress = Math.round(
-    tasks.reduce((a, t) => a + (t.progress || 0), 0) / (tasks.length || 1)
-  );
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(API, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => setData(json))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <p className="p-4 md:p-6">Loading dashboard...</p>;
+  }
 
   return (
-    <div className="grid md:grid-cols-3 gap-6">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="font-semibold mb-2">Overall progress</h3>
-        <ProgressBar value={avgProgress} />
-        <p className="text-sm text-gray-600 mt-2">
-          {avgProgress}% tasks completed
-        </p>
-      </div>
+    <div className="p-4 md:p-6 bg-gray-100 min-h-screen">
+      {/* MAIN CARD */}
+      <div className="bg-white border border-orange-300 rounded-2xl shadow-sm p-4 md:p-6">
+        
+        {/* HEADER */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+          <h2 className="text-orange-600 font-semibold text-lg">
+            Dashboard Overview
+          </h2>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="font-semibold mb-2">Invoices</h3>
-        <p className="text-sm">Paid: {invoices.filter(i => i.status === "paid").length}</p>
-        <p className="text-sm">Pending: {invoices.filter(i => i.status !== "paid").length}</p>
+          <button className="bg-orange-500 text-white px-5 py-2 rounded-lg text-sm hover:bg-orange-600 w-full sm:w-auto">
+            Admin Panel
+          </button>
+        </div>
 
-        <Link to="/admin/invoices" className="inline-block mt-3 px-4 py-2 border rounded">
-          View invoices
-        </Link>
-      </div>
+        {/* DASHBOARD GRID */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="font-semibold mb-2">Quick actions</h3>
-        <div className="flex gap-2">
-          <Link to="/admin/tasks" className="px-4 py-2 bg-indigo-600 text-white rounded">
-            Assign task
-          </Link>
-          <Link to="/admin/payments" className="px-4 py-2 border rounded">
-            Take payment
-          </Link>
+          {/* TASKS */}
+          <div className="bg-white border border-orange-200 rounded-xl shadow p-4 md:p-6">
+            <h3 className="font-semibold mb-1">Tasks</h3>
+            <p className="text-3xl font-bold text-indigo-600">
+              {data.tasks}
+            </p>
+            <p className="text-sm text-gray-500">Total tasks</p>
+          </div>
+
+          {/* INVOICES */}
+          <div className="bg-white border border-orange-200 rounded-xl shadow p-4 md:p-6">
+            <h3 className="font-semibold mb-2">Invoices</h3>
+            <p className="text-sm">Paid: {data.invoices.paid}</p>
+            <p className="text-sm">Pending: {data.invoices.pending}</p>
+
+            <Link
+              to="/admin/invoices"
+              className="inline-block mt-3 px-4 py-2 border border-orange-300 rounded text-sm hover:bg-orange-50 w-full sm:w-auto text-center"
+            >
+              View invoices
+            </Link>
+          </div>
+
+          {/* EMPLOYEES */}
+          <div className="bg-white border border-orange-200 rounded-xl shadow p-4 md:p-6">
+            <h3 className="font-semibold mb-2">Employees</h3>
+            <p className="text-3xl font-bold text-blue-600">
+              {data.employees}
+            </p>
+          </div>
+
+          {/* EMPLOYERS */}
+          <div className="bg-white border border-orange-200 rounded-xl shadow p-4 md:p-6">
+            <h3 className="font-semibold mb-2">Employers</h3>
+            <p className="text-3xl font-bold text-purple-600">
+              {data.employers}
+            </p>
+          </div>
+
+          {/* PAYMENTS */}
+          <div className="bg-white border border-orange-200 rounded-xl shadow p-4 md:p-6">
+            <h3 className="font-semibold mb-2">Payments</h3>
+            <p className="text-3xl font-bold text-green-600">
+              ₹ {data.payments.total_amount}
+            </p>
+          </div>
+
+          {/* EMPLOYEE PAYSLIPS */}
+          <div className="bg-white border border-orange-200 rounded-xl shadow p-4 md:p-6">
+            <h3 className="font-semibold mb-2">Employee Payslips</h3>
+            <p className="text-3xl font-bold text-indigo-600">
+              {data.payslips.employees}
+            </p>
+          </div>
+
+          {/* EMPLOYER PAYSLIPS */}
+          <div className="bg-white border border-orange-200 rounded-xl shadow p-4 md:p-6">
+            <h3 className="font-semibold mb-2">Employer Payslips</h3>
+            <p className="text-3xl font-bold text-purple-600">
+              {data.payslips.employers}
+            </p>
+          </div>
+
+          {/* EPFO REQUESTS */}
+          <div className="bg-white border border-orange-200 rounded-xl shadow p-4 md:p-6">
+            <h3 className="font-semibold mb-2">EPFO Requests</h3>
+            <p className="text-3xl font-bold text-orange-600">
+              {data.epfo_requests}
+            </p>
+          </div>
+
         </div>
       </div>
     </div>

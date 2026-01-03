@@ -22,29 +22,31 @@ export default function AdminLogin({ onLogin }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password.trim(),
+          }),
         }
       );
 
       const data = await res.json();
 
-      if (!res.ok || !data.success) {
-        setError(data.error || "Login failed");
+      // ❌ login failed
+      if (!data.success) {
+        setError(data.message || "Login failed");
         return;
       }
 
-      // ✅ Store admin info
-      const admin = {
-        id: data.id,
-        name: data.name,
-        role: data.role,
-      };
+      // ✅ login success
+      const admin = data.admin;
 
-      onLogin(admin);
-
-      // optional: localStorage
+      // store in localStorage
       localStorage.setItem("admin", JSON.stringify(admin));
 
+      // optional parent state
+      if (onLogin) onLogin(admin);
+
+      // redirect
       navigate("/admin/dashboard");
     } catch (err) {
       console.error(err);
@@ -96,4 +98,3 @@ export default function AdminLogin({ onLogin }) {
     </div>
   );
 }
-    

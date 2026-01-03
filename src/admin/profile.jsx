@@ -1,93 +1,143 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 
-export default function Profile() {
-  const user = JSON.parse(localStorage.getItem("user"));
+export default function AdminProfile() {
+  /* ---------- GET ADMIN FROM LOCALSTORAGE ---------- */
+  const admin =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("admin"))
+      : null;
 
   const [profile, setProfile] = useState(null);
-  const [form, setForm] = useState({});
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showEdit, setShowEdit] = useState(false);
 
+  /* ---------- IF ADMIN NOT LOGGED IN ---------- */
+  if (!admin) {
+    return (
+      <div className="bg-red-50 border border-red-200 p-6 rounded-lg text-red-600">
+        Admin not logged in
+      </div>
+    );
+  }
+
+  /* ---------- LOAD ADMIN PROFILE ---------- */
   useEffect(() => {
-    if (!user?.id) return;
+    if (!admin?.id) return;
 
     fetch(
-      `https://projects.growtechnologies.in/srisaigroups/api/users/get-profile.php?user_id=${user.id}`,
+      `https://projects.growtechnologies.in/srisaigroups/api/admin/get-profile.php?admin_id=${admin.id}`,
       { cache: "no-store" }
     )
       .then((res) => res.json())
       .then((data) => {
         setProfile(data);
-        setForm(data);
+        setForm({
+          name: data?.name || "",
+          email: data?.email || "",
+          password: data?.password || "",
+        });
       })
       .catch(() => setError("Failed to load profile"))
       .finally(() => setLoading(false));
-  }, [user?.id]);
+  }, [admin?.id]);
 
+  /* ---------- SAVE ADMIN PROFILE ---------- */
   const handleSave = async () => {
     setSaving(true);
+    setError("");
     setSuccess("");
 
     try {
       const res = await fetch(
-        "https://projects.growtechnologies.in/srisaigroups/api/users/update-profile.php",
+        "https://projects.growtechnologies.in/srisaigroups/api/admin/update-profile.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: user.id, ...form }),
+          body: JSON.stringify({
+            admin_id: admin.id,
+            name: form.name,
+            email: form.email,
+            password: form.password,
+          }),
         }
       );
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error || "Update failed");
 
-      setProfile(data);
+      setProfile({
+        ...profile,
+        name: form.name,
+        email: form.email,
+        password: form.password,
+      });
+
       setShowEdit(false);
       setSuccess("Profile updated successfully");
     } catch (err) {
-      alert(err.message || "Update failed");
+      setError(err.message || "Update failed");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="card p-6">Loading profile...</div>;
-  if (error) return <div className="card p-6 bg-red-50 text-red-600">{error}</div>;
+  /* ---------- STATES ---------- */
+  if (loading) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow">
+        Loading profile...
+      </div>
+    );
+  }
 
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 p-6 rounded-lg text-red-600">
+        {error}
+      </div>
+    );
+  }
+
+  /* ---------- UI ---------- */
   return (
     <>
       {success && (
-        <div className="card p-4 mb-4 bg-green-50 text-green-700">
+        <div className="bg-green-50 border border-green-200 p-4 mb-4 rounded-lg text-green-700">
           {success}
         </div>
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* PROFILE */}
-        <div className="lg:col-span-2 card p-6">
+        <div className="lg:col-span-2 bg-white border border-orange-200 rounded-xl shadow p-6">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">Profile Information</h3>
-            <button className="btn-secondary" onClick={() => setShowEdit(true)}>
+            <h3 className="text-lg font-semibold text-orange-600">
+              Profile Information
+            </h3>
+            <button
+              className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition"
+              onClick={() => setShowEdit(true)}
+            >
               Edit Profile
             </button>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 text-sm">
-            <Info label="Name" value={profile.name} />
-            <Info label="Email" value={profile.email} />
-            <Info label="Phone" value={profile.phone} />
-
-            {profile.employee_code && (
-              <>
-                <Info label="Employee Code" value={profile.employee_code} />
-                <Info label="Department" value={profile.department} />
-                <Info label="Designation" value={profile.designation} />
-              </>
-            )}
+            <Info label="Name" value={profile?.name} />
+            <Info label="Email" value={profile?.email} />
+            <Info label="Password" value={profile?.password} />
+            <Info label="Role" value="Admin" />
           </div>
         </div>
       </div>
@@ -99,71 +149,58 @@ export default function Profile() {
           onClick={() => setShowEdit(false)}
         >
           <div
-            className="bg-white rounded-xl w-full max-w-lg p-6"
+            className="bg-white rounded-xl w-full max-w-lg p-6 border border-orange-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Edit Profile</h3>
-              <span className="badge bg-brand-100 text-brand-700 capitalize">
-                {profile.user_type}
+              <h3 className="text-lg font-semibold text-orange-600">
+                Edit Profile
+              </h3>
+              <span className="px-3 py-1 rounded-full text-xs bg-orange-100 text-orange-700">
+                admin
               </span>
             </div>
 
-           <div className="space-y-3">
-  <Input
-    label="Name"
-    value={form.name}
-    onChange={(v) => setForm({ ...form, name: v })}
-  />
+            <div className="space-y-3">
+              <Input
+                label="Name"
+                value={form.name}
+                onChange={(v) =>
+                  setForm({ ...form, name: v })
+                }
+              />
 
-  <Input
-    label="Phone"
-    value={form.phone}
-    onChange={(v) => setForm({ ...form, phone: v })}
-  />
+              <Input
+                label="Email"
+                value={form.email}
+                onChange={(v) =>
+                  setForm({ ...form, email: v })
+                }
+              />
 
-  <Input
-    label="Email"
-    value={form.email}
-    onChange={(v) => setForm({ ...form, email: v })}
-  />
-
-  <p className="text-xs text-gray-500">
-    Changing email will affect login credentials
-  </p>
-
-  {form.employee_code && (
-    <>
-      <Input
-        label="Department"
-        value={form.department}
-        onChange={(v) => setForm({ ...form, department: v })}
-      />
-      <Input
-        label="Designation"
-        value={form.designation}
-        onChange={(v) => setForm({ ...form, designation: v })}
-      />
-    </>
-  )}
-</div>
-
+              <Input
+                label="Password"
+                value={form.password}
+                onChange={(v) =>
+                  setForm({ ...form, password: v })
+                }
+              />
+            </div>
 
             <div className="flex justify-end gap-3 mt-6">
               <button
-                className="btn-secondary"
+                className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 transition"
                 onClick={() => setShowEdit(false)}
               >
                 Cancel
               </button>
               <button
-  className="btn-primary"
-  onClick={handleSave}
-  disabled={saving || !form.name || !form.email}
->
-  {saving ? "Saving..." : "Save Changes"}
-</button>
-
+                className="px-5 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition disabled:opacity-50"
+                onClick={handleSave}
+                disabled={saving || !form.name || !form.email}
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
             </div>
           </div>
         </div>
@@ -172,22 +209,25 @@ export default function Profile() {
   );
 }
 
-/* ---------- Helpers ---------- */
+/* ---------- HELPERS ---------- */
 const Info = ({ label, value }) => (
   <div>
     <p className="text-gray-500">{label}</p>
-    <p className="font-medium">{value || "-"}</p>
+    <p className="font-medium text-gray-800">
+      {value !== undefined && value !== null && value !== "" ? value : "-"}
+    </p>
   </div>
 );
 
-const Input = ({ label, value, onChange, disabled }) => (
+const Input = ({ label, value, onChange }) => (
   <div>
-    <label className="label">{label}</label>
+    <label className="block text-sm text-gray-600 mb-1">
+      {label}
+    </label>
     <input
-      className={`input ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}`}
+      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
       value={value || ""}
-      disabled={disabled}
-      onChange={(e) => onChange?.(e.target.value)}
+      onChange={(e) => onChange(e.target.value)}
     />
   </div>
 );
