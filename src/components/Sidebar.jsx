@@ -26,6 +26,7 @@ const links = [
   { to: "/id-creation", label: "Add Employee", icon: IdentificationIcon, roles: ["employer"] },
   { to: "/invoices", label: "Invoices", icon: DocumentTextIcon, roles: ["employer"] },
   { to: "/payments", label: "Payments", icon: CurrencyRupeeIcon, roles: ["employer"] },
+  { to: "/addpayslip", label: "Create Payslip", icon: CurrencyRupeeIcon, roles: ["employer"] },
   { to: "/reports", label: "Reports", icon: ChartBarIcon, roles: ["employer"] },
   { to: "/epfo-requests", label: "EPFO Requests", icon: BanknotesIcon, roles: ["employer"] },
 ];

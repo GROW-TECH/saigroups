@@ -18,7 +18,7 @@ import EpfoRequests from "./pages/EpfoRequests.jsx";
 import Reports from "./pages/Reports.jsx";
 import Payments from "./pages/Payments.jsx";
 import Payslip from "./pages/Payslip.jsx";
-
+import Addpayslip from "./pages/AddPayslip.jsx";
 /* ================= ADMIN PAGES ================= */
 import AdminLogin from "./admin/login.jsx";
 import AdminDashboard from "./admin/Dashboard.jsx";
@@ -92,8 +92,10 @@ export default function App() {
         <Route path="/invoices" element={requireAuth(<Invoices />)} />
         <Route path="/id-creation" element={requireAuth(<IdCreation />)} />
         <Route path="/epfo-requests" element={requireAuth(<EpfoRequests />)} />
+        
         <Route path="/reports" element={requireAuth(<Reports />)} />
         <Route path="/payments" element={requireAuth(<Payments />)} />
+        <Route path="/addpayslip" element={requireAuth(<Addpayslip />)} />
         <Route path="/payslip" element={requireAuth(<Payslip user={user} />)} />
       </Route>
 

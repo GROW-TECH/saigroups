@@ -17,11 +17,16 @@ export default function DashboardLayout({ user, onLogout }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* TOPBAR */}
-      <Topbar
-        user={user}
-        onLogout={onLogout}
-        onMenuClick={() => setSidebarOpen(true)}
-      />
+     <Topbar
+  user={user}
+  onLogout={() => {
+    localStorage.removeItem("user");   // ⬅️ clear role + user
+    onLogout();                        // ⬅️ setUser(null)
+    navigate("/login", { replace: true }); // ⬅️ force redirect
+  }}
+  onMenuClick={() => setSidebarOpen(true)}
+/>
+
 
       <div className="flex">
         {/* SIDEBAR */}

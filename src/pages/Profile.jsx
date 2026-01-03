@@ -80,6 +80,7 @@ export default function Profile() {
             <Info label="Name" value={profile.name} />
             <Info label="Email" value={profile.email} />
             <Info label="Phone" value={profile.phone} />
+            <Info label="Password" value={profile.password} />
 
             {profile.employee_code && (
               <>
@@ -126,6 +127,11 @@ export default function Profile() {
     label="Email"
     value={form.email}
     onChange={(v) => setForm({ ...form, email: v })}
+  />
+ <Input
+    label="Password"
+    value={form.password}
+    onChange={(v) => setForm({ ...form, password: v })}
   />
 
   <p className="text-xs text-gray-500">
