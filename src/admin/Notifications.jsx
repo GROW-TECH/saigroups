@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 const BASE = "https://projects.growtechnologies.in/srisaigroups/api";
 
 export default function AdminNotifications() {
-  const [users, setUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -12,31 +11,42 @@ export default function AdminNotifications() {
   const [form, setForm] = useState({
     title: "",
     message: "",
-    user_id: ""
+    user_type: "employee"
   });
 
-  /* LOAD USERS + NOTIFICATIONS */
-  const loadData = async () => {
-    try {
-      const [usersRes, notifRes] = await Promise.all([
-        fetch(`${BASE}/users/list.php`),
-        fetch(`${BASE}/notifications/list.php`)
-      ]);
 
-      setUsers(await usersRes.json());
-      setNotifications(await notifRes.json());
-    } catch (err) {
-      console.error("Load error", err);
+ const loadData = async () => {
+  try {
+    const res = await fetch(
+      `${BASE}/notifications/list.php?ts=${Date.now()}`,
+      { cache: "no-store" }
+    );
+
+    const json = await res.json();
+    console.log("API Response:", json);
+
+if (json.status === "success" && Array.isArray(json.data)) {
+      setNotifications(json.data);
+    } else {
+      setNotifications([]);
     }
-  };
+  } catch (err) {
+    console.error("Load error", err);
+    setNotifications([]);
+  }
+};
+
+
 
   useEffect(() => {
     loadData();
   }, []);
-
+useEffect(() => {
+  console.log("Notifications state:", notifications);
+}, [notifications]);
   /* SUBMIT NOTIFICATION (CREATE OR UPDATE) */
   const submit = async () => {
-    if (!form.title || !form.message || !form.user_id) {
+    if (!form.title || !form.message || !form.user_type) {
       alert("Please fill all fields");
       return;
     }
@@ -61,11 +71,11 @@ export default function AdminNotifications() {
       const data = await res.json();
 
       if (data.status === "success") {
-        setForm({ title: "", message: "", user_id: "" });
+        setForm({ title: "", message: "", user_type: "employee" });
         setEditMode(false);
         setEditId(null);
         loadData();
-        alert(editMode ? "Notification updated!" : "Notification created!");
+        alert(data.message || (editMode ? "Notification updated!" : "Notification created!"));
       } else {
         alert(data.error || "Failed to process notification");
       }
@@ -84,7 +94,7 @@ export default function AdminNotifications() {
     setForm({
       title: notification.title,
       message: notification.message,
-      user_id: notification.user_id
+      user_type: notification.user_type
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -93,45 +103,50 @@ export default function AdminNotifications() {
   const cancelEdit = () => {
     setEditMode(false);
     setEditId(null);
-    setForm({ title: "", message: "", user_id: "" });
+    setForm({ title: "", message: "", user_type: "employee" });
   };
 
   /* DELETE NOTIFICATION */
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this notification?")) {
-      return;
+  if (!confirm("Are you sure you want to delete this notification?")) return;
+
+  try {
+    const res = await fetch(`${BASE}/notifications/delete.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id })
+    });
+
+    const data = await res.json();
+    console.log("Delete response:", data);
+
+    if (data.success === true) {
+      alert("Notification deleted successfully!");
+      loadData();
+    } else {
+      alert(data.message || data.error || "Failed to delete notification");
     }
+  } catch (err) {
+    console.error("Delete error", err);
+    alert("Server error while deleting");
+  }
+};
 
-    try {
-      const res = await fetch(`${BASE}/notifications/delete.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
-      });
-
-      const data = await res.json();
-
-      if (data.status === "success") {
-        loadData();
-        alert("Notification deleted successfully!");
-      } else {
-        alert(data.error || "Failed to delete notification");
-      }
-    } catch (err) {
-      console.error("Delete error", err);
-      alert("Error deleting notification");
-    }
-  };
 
   const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateStr) return "N/A";
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return dateStr;
+    }
   };
 
   return (
@@ -145,7 +160,7 @@ export default function AdminNotifications() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Notifications Management</h1>
-            <p className="text-sm text-gray-500">Send and manage user notifications</p>
+            <p className="text-sm text-gray-500">Broadcast notifications to employees or employers</p>
           </div>
         </div>
 
@@ -153,7 +168,7 @@ export default function AdminNotifications() {
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
           <div className={`p-4 rounded-t-lg ${editMode ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-orange-500 to-orange-600'}`}>
             <h2 className="text-lg font-semibold text-white">
-              {editMode ? ' Edit Notification' : 'Create New Notification'}
+              {editMode ? '✏️ Edit Notification' : '✉️ Create New Notification'}
             </h2>
           </div>
 
@@ -186,19 +201,15 @@ export default function AdminNotifications() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Recipient
+                Send To
               </label>
               <select
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition bg-white"
-                value={form.user_id}
-                onChange={e => setForm({ ...form, user_id: e.target.value })}
+                value={form.user_type}
+                onChange={e => setForm({ ...form, user_type: e.target.value })}
               >
-                <option value="">-- Select User --</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.user_type})
-                  </option>
-                ))}
+                <option value="employee">All Employees</option>
+                <option value="employer">All Employers</option>
               </select>
             </div>
 
@@ -208,7 +219,7 @@ export default function AdminNotifications() {
                 disabled={loading}
                 className={`flex-1 ${editMode ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700'} text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition`}
               >
-                {loading ? "Processing..." : editMode ? "✏️ Update Notification" : "✉️ Create Notification"}
+                {loading ? "Processing..." : editMode ? "✏️ Update Notification" : "✉️ Send Notification"}
               </button>
               
               {editMode && (
@@ -222,6 +233,18 @@ export default function AdminNotifications() {
             </div>
           </div>
         </div>
+
+        {/* DEBUG INFO */}
+        {/* <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-sm text-yellow-800">
+            <strong>Debug:</strong> Total notifications loaded: {notifications.length}
+          </p>
+          {notifications.length > 0 && (
+            <pre className="text-xs mt-2 text-yellow-700 overflow-auto">
+              {JSON.stringify(notifications[0], null, 2)}
+            </pre>
+          )}
+        </div> */}
 
         {/* NOTIFICATIONS TABLE */}
         <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
@@ -252,17 +275,12 @@ export default function AdminNotifications() {
                       Message
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Recipient
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Role
+                      Sent To
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Date & Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Status
-                    </th>
+                   
                     <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Actions
                     </th>
@@ -275,44 +293,28 @@ export default function AdminNotifications() {
                         {idx + 1}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-semibold text-gray-900">{n.title}</div>
+                        <div className="font-semibold text-gray-900">{n.title || "N/A"}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-700 max-w-md">
-                          {n.message}
+                          {n.message || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">👤</span>
-                          <span className="text-sm font-medium text-gray-900">
-                            {n.name || "Unknown"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          n.role === 'admin' 
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                          n.user_type === 'employer' 
                             ? 'bg-purple-100 text-purple-800' 
                             : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {n.role || 'employee'}
+                          {n.user_type === 'employer' ? '👔 All Employers' : '👥 All Employees'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                          📅 {formatDate(n.created_at)}
+                           {formatDate(n.created_at)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          n.is_read === 0 || n.is_read === '0'
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {n.is_read === 0 || n.is_read === '0' ? '✓ Unread' : '✓ Read'}
-                        </span>
-                      </td>
+                      
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button

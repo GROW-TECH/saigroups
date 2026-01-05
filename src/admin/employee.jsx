@@ -12,25 +12,38 @@ export default function AdminEmployee() {
   // 🔹 employee / employer filter
   const [type, setType] = useState("employee");
 
-  const [form, setForm] = useState({
-    user_type: "employee",
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    status: 1,
-    // Employee fields
-    employee_code: "",
-    department: "",
-    designation: "",
-    joining_date: "",
-    epfo_number: "",
-    // Employer fields
-    organization_name: "",
-    organization_code: "",
-    address: "",
-    gst_number: "",
-  });
+ const [form, setForm] = useState({
+  user_type: "employee",
+  name: "",
+  email: "",
+  phone: "",
+  password: "",
+  status: 1,
+
+  // Employee
+employee_code: "",
+department: "",
+designation: "",
+joining_date: "",
+epfo_number: "",
+phone_no: "",
+website: "",
+esic_number: "",
+balance: "",
+
+
+  // Employer
+  organization_name: "",
+  organization_code: "",
+  address: "",
+  gst_number: "",
+  phone_no: "",
+  website: "",
+  employer_epfo_number: "",
+  esic_number: "",
+  balance: "",
+});
+
 
   /* ================= AUTO GENERATE CODES ================= */
   // const generateEmployeeCode = () => {
@@ -78,63 +91,87 @@ export default function AdminEmployee() {
   }, [type]); // 🔴 reload when type changes
 
   /* ================= ADD / UPDATE ================= */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const url = editId
-      ? `${API}/update.php`
-      : `${API}/create.php`;
+  const url = editId
+    ? `${API}/update.php`
+    : `${API}/create.php`;
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          editId ? { ...form, id: editId } : form
-        ),
-      });
+  const payload = {
+    id: editId,
+    user_type: type,
+    name: form.name,
+    email: form.email,
+    phone: form.phone,
+    password: form.password,
+    status: form.status,
 
-      const data = await res.json();
+    // employee
+    department: form.department,
+    designation: form.designation,
+    joining_date: form.joining_date,
+    epfo_number: form.epfo_number,
 
-      if (!res.ok) {
-        alert(data.error || data.message || "Failed");
-        console.error("API Error:", data);
-        return;
-      }
-
-      alert(editId ? "User updated successfully!" : "User created successfully!");
-
-      setShowForm(false);
-      setEditId(null);
-      resetForm();
-      loadEmployees();
-
-    } catch (err) {
-      console.error("Submit Error:", err);
-      alert("Server error. Please check console.");
-    }
+    // employer
+    organization_name: form.organization_name,
+    address: form.address,
+    phone_no: form.phone_no,
+    website: form.website,
+    employer_epfo_number: form.employer_epfo_number,
+    esic_number: form.esic_number,
+    gst_number: form.gst_number,
+    balance: form.balance,
   };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.error || data.message || "Failed");
+    return;
+  }
+
+  alert(editId ? "Updated successfully" : "Created successfully");
+};
+
 
   /* ================= RESET FORM ================= */
   const resetForm = () => {
-    setForm({
-      user_type: type,
-      name: "",
-      email: "",
-      phone: "",
-      password: "",
-      status: 1,
-      employee_code: "",
-      department: "",
-      designation: "",
-      joining_date: "",
-      epfo_number: "",
-      organization_name: "",
-      organization_code: "",
-      address: "",
-      gst_number: "",
-    });
-  };
+  setForm({
+  user_type: type,
+  name: "",
+  email: "",
+  phone: "",
+  password: "",
+  status: 1,
+
+  // Employee
+  employee_code: "",
+  department: "",
+  designation: "",
+  joining_date: "",
+  epfo_number: "",
+
+  // Employer
+  organization_name: "",
+  organization_code: "",
+  address: "",
+  gst_number: "",
+  phone_no: "",
+  website: "",
+  employer_epfo_number: "",
+  esic_number: "",
+  balance: "",
+});
+
+};
+
 
   /* ================= OPEN ADD FORM ================= */
   const openAddForm = () => {
@@ -142,51 +179,88 @@ export default function AdminEmployee() {
     setEditId(null);
     
     // Auto-generate codes when opening form
-    const newForm = {
-      user_type: type,
-      name: "",
-      email: "",
-      phone: "",
-      password: "",
-      status: 1,
-      // employee_code: type === "employee" ? generateEmployeeCode() : "",
-      department: "",
-      designation: "",
-      joining_date: "",
-      // epfo_number: type === "employee" ? generateEPFONumber() : "",
-      organization_name: "",
-      // organization_code: type === "employer" ? generateOrganizationCode() : "",
-      address: "",
-      gst_number: "",
-    };
+  const newForm = {
+  user_type: type,
+  name: "",
+  email: "",
+  phone: "",
+  password: "",
+  status: 1,
+
+  // Employee
+  employee_code: "",
+  department: "",
+  designation: "",
+  joining_date: "",
+  epfo_number: "",
+
+  // Employer
+  organization_name: "",
+  organization_code: "",
+  address: "",
+  gst_number: "",
+  phone_no: "",
+  website: "",
+  employer_epfo_number: "",
+  esic_number: "",
+  balance: "",
+};
+
     
     setForm(newForm);
   };
 
   /* ================= EDIT ================= */
   const editEmployee = (emp) => {
-    setEditId(emp.id);
-    setForm({
-      user_type: emp.user_type,
-      name: emp.name,
-      email: emp.email,
-      phone: emp.phone,
-      password: "",
-      status: emp.status,
-      // Employee fields
-      employee_code: emp.employee_code || "",
-      department: emp.department || "",
-      designation: emp.designation || "",
-      joining_date: emp.joining_date || "",
-      epfo_number: emp.epfo_number || "",
-      // Employer fields
-      organization_name: emp.organization_name || "",
-      organization_code: emp.organization_code || "",
-      address: emp.address || "",
-      gst_number: emp.gst_number || "",
-    });
-    setShowForm(true);
-  };
+  setEditId(emp.id);
+
+  setForm(
+    emp.user_type === "employee"
+      ? {
+          user_type: "employee",
+          name: emp.name,
+          email: emp.email,
+          phone: emp.phone || "",
+          password: "",
+          status: emp.status,
+
+          // ✅ ONLY employee columns
+       employee_code: emp.employee_code || "",
+department: emp.department || "",
+designation: emp.designation || "",
+joining_date: emp.joining_date || "",
+epfo_number: emp.epfo_number || "",
+phone_no: emp.phone_no || "",
+website: emp.website || "",
+esic_number: emp.esic_number || "",
+balance: emp.balance || "",
+
+        }
+      : {
+          user_type: "employer",
+          name: emp.name,
+          email: emp.email,
+          phone: emp.phone || "",
+          password: "",
+          status: emp.status,
+
+          // ✅ employer columns
+          organization_name: emp.organization_name || "",
+          organization_code: emp.organization_code || "",
+          address: emp.address || "",
+          gst_number: emp.gst_number || "",
+          phone_no: emp.phone_no || "",
+          website: emp.website || "",
+          employer_epfo_number: emp.epfo_number || "",
+          esic_number: emp.esic_number || "",
+          balance: emp.balance || "",
+        }
+  );
+
+  setShowForm(true);
+};
+
+
 
   /* ================= DELETE ================= */
   const deleteEmployee = async (id) => {
@@ -390,6 +464,35 @@ export default function AdminEmployee() {
                 />
               </div>
 
+
+<div>
+  <label>Website</label>
+  <input
+    value={form.website || ""}
+    onChange={e => setForm({ ...form, website: e.target.value })}
+    className="input"
+  />
+</div>
+
+<div>
+  <label>ESIC Number</label>
+  <input
+    value={form.esic_number || ""}
+    onChange={e => setForm({ ...form, esic_number: e.target.value })}
+    className="input"
+  />
+</div>
+
+<div>
+  <label>Balance</label>
+  <input
+    type="number"
+    value={form.balance || ""}
+    onChange={e => setForm({ ...form, balance: e.target.value })}
+    className="input"
+  />
+</div>
+
               <div className="col-span-1 md:col-span-2">
 
   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -408,66 +511,81 @@ export default function AdminEmployee() {
           )}
 
           {/* ========== EMPLOYER FIELDS ========== */}
-          {type === "employer" && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Organization Name
-                </label>
-                <input
-                  placeholder="Enter organization name"
-                  value={form.organization_name}
-                  onChange={(e) =>
-                    setForm({ ...form, organization_name: e.target.value })
-                  }
-                  className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+         {type === "employer" && (
+  <>
+    <div>
+      <label>Company Name</label>
+      <input
+        value={form.organization_name}
+        onChange={e => setForm({ ...form, organization_name: e.target.value })}
+        className="input"
+      />
+    </div>
 
-              <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Organization Code
-  </label>
+    <div>
+      <label>Organization Code</label>
+      <input value="Auto generated" disabled className="input bg-gray-100" />
+    </div>
 
-  <input
-    value={form.organization_code || "Auto generated"}
-    disabled
-    className="w-full border border-gray-300 p-2.5 rounded-lg
-               bg-gray-100 text-gray-700 cursor-not-allowed"
-  />
-</div>
+    
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  GST Number
-                </label>
-                <input
-                  placeholder="Enter GST number"
-                  value={form.gst_number}
-                  onChange={(e) =>
-                    setForm({ ...form, gst_number: e.target.value })
-                  }
-                  className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+    <div>
+      <label>Website</label>
+      <input
+        value={form.website}
+        onChange={e => setForm({ ...form, website: e.target.value })}
+        className="input"
+      />
+    </div>
 
-              <div className="col-span-1 md:col-span-2">
+    <div>
+      <label>EPFO Number</label>
+      <input
+        value={form.employer_epfo_number}
+        onChange={e => setForm({ ...form, employer_epfo_number: e.target.value })}
+        className="input"
+      />
+    </div>
 
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Address
-                </label>
-                <textarea
-                  placeholder="Enter address"
-                  value={form.address}
-                  onChange={(e) =>
-                    setForm({ ...form, address: e.target.value })
-                  }
-                  className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows="3"
-                />
-              </div>
-            </>
-          )}
+    <div>
+      <label>ESIC Number</label>
+      <input
+        value={form.esic_number}
+        onChange={e => setForm({ ...form, esic_number: e.target.value })}
+        className="input"
+      />
+    </div>
+
+    <div>
+      <label>GST Number</label>
+      <input
+        value={form.gst_number}
+        onChange={e => setForm({ ...form, gst_number: e.target.value })}
+        className="input"
+      />
+    </div>
+
+    <div>
+      <label>Balance</label>
+      <input
+        type="number"
+        value={form.balance}
+        onChange={e => setForm({ ...form, balance: e.target.value })}
+        className="input"
+      />
+    </div>
+
+    <div className="col-span-2">
+      <label>Address</label>
+      <textarea
+        value={form.address}
+        onChange={e => setForm({ ...form, address: e.target.value })}
+        className="input"
+      />
+    </div>
+  </>
+)}
+
 
          <div className="col-span-1 md:col-span-2
                 flex flex-col sm:flex-row gap-3 mt-4">
@@ -515,6 +633,9 @@ export default function AdminEmployee() {
                     <th className="p-3 text-left text-sm font-semibold text-gray-700">Employee Code</th>
                     <th className="p-3 text-left text-sm font-semibold text-gray-700">Department</th>
                     <th className="p-3 text-left text-sm font-semibold text-gray-700">Designation</th>
+                    <th className="p-3 text-left text-sm font-semibold text-gray-700">Website</th>
+                    <th className="p-3 text-left text-sm font-semibold text-gray-700">ESIC</th>
+                    <th className="p-3 text-left text-sm font-semibold text-gray-700">Balance</th>
                   </>
                 )}
                 
@@ -524,6 +645,7 @@ export default function AdminEmployee() {
                     <th className="p-3 text-left text-sm font-semibold text-gray-700">Organization</th>
                     <th className="p-3 text-left text-sm font-semibold text-gray-700">Org Code</th>
                     <th className="p-3 text-left text-sm font-semibold text-gray-700">GST Number</th>
+                    <th className="p-3 text-left text-sm font-semibold text-gray-700">Balance</th>
                   </>
                 )}
                 
@@ -554,6 +676,9 @@ export default function AdminEmployee() {
                       <td className="p-3 text-sm text-gray-700">{emp.employee_code || "-"}</td>
                       <td className="p-3 text-sm text-gray-700">{emp.department || "-"}</td>
                       <td className="p-3 text-sm text-gray-700">{emp.designation || "-"}</td>
+                      <td className="p-3 text-sm text-gray-700">{emp.website || "-"}</td>
+                      <td className="p-3 text-sm text-gray-700">{emp.esic_number || "-"}</td>
+                      <td className="p-3 text-sm text-gray-700">{emp.balance || "0"}</td>
                     </>
                   )}
                   
@@ -563,6 +688,7 @@ export default function AdminEmployee() {
                       <td className="p-3 text-sm text-gray-700">{emp.organization_name || "-"}</td>
                       <td className="p-3 text-sm text-gray-700">{emp.organization_code || "-"}</td>
                       <td className="p-3 text-sm text-gray-700">{emp.gst_number || "-"}</td>
+                      <td className="p-3 text-sm text-gray-700">{emp.balance || "-"}</td>
                     </>
                   )}
                   

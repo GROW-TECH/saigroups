@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 
+/* ✅ BASE API (ADMIN PAYSLIPS) */
 const API =
   "https://projects.growtechnologies.in/srisaigroups/api/admin/payslips";
 
@@ -67,7 +68,7 @@ export default function PayslipManagement() {
     setForm((p) => ({ ...p, net_salary: net.toFixed(2) }));
   }, [form.basic_salary, form.allowances, form.deductions]);
 
-  /* ================= SAVE ================= */
+  /* ================= SAVE (CREATE / UPDATE) ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -85,8 +86,8 @@ export default function PayslipManagement() {
 
     const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.error || "Failed");
+    if (!data.success) {
+      alert(data.message || "Failed");
       return;
     }
 
@@ -111,22 +112,25 @@ export default function PayslipManagement() {
     setShowForm(true);
   };
 
-  /* ================= DELETE ================= */
+  /* ================= DELETE (✅ FIXED) ================= */
   const deletePayslip = async (id) => {
     if (!window.confirm("Delete this payslip?")) return;
 
-    const res = await fetch(`${API}/delete.php?id=${id}`, {
-      method: "POST",
-    });
+    try {
+      const res = await fetch(`${API}/delete.php?id=${id}`);
+      const data = await res.json();
 
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.error || "Delete failed");
-      return;
+      if (!data.success) {
+        alert(data.message || "Delete failed");
+        return;
+      }
+
+      alert("Payslip deleted successfully");
+      loadPayslips();
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
     }
-
-    alert("Payslip deleted");
-    loadPayslips();
   };
 
   const resetForm = () => {
@@ -184,7 +188,7 @@ export default function PayslipManagement() {
         )}
       </div>
 
-      {/* FORM (EMPLOYER ONLY) */}
+      {/* FORM */}
       {showForm && viewType === "employer" && (
         <form
           onSubmit={handleSubmit}
@@ -252,7 +256,7 @@ export default function PayslipManagement() {
             className="border p-2 col-span-2 bg-orange-50 font-semibold"
           />
 
-          <button className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded">
+          <button className="bg-orange-500 text-white p-2 rounded">
             {editId ? "Update" : "Save"}
           </button>
 
@@ -272,15 +276,9 @@ export default function PayslipManagement() {
           <thead className="bg-orange-500 text-white">
             <tr>
               <th className="p-3">ID</th>
-              {viewType === "employee" ? (
-                <>
-                  <th className="p-3">Employee</th>
-                  <th className="p-3">Code</th>
-                  <th className="p-3">Department</th>
-                </>
-              ) : (
-                <th className="p-3">Employer</th>
-              )}
+              <th className="p-3">
+                {viewType === "employee" ? "Employee" : "Employer"}
+              </th>
               <th className="p-3">Month</th>
               <th className="p-3">Net Salary</th>
               {viewType === "employer" && <th className="p-3">Action</th>}
@@ -302,19 +300,13 @@ export default function PayslipManagement() {
               </tr>
             ) : (
               payslips.map((p) => (
-                <tr key={p.id} className="border-t hover:bg-orange-50">
+                <tr key={p.id} className="border-t">
                   <td className="p-3">{p.id}</td>
-
-                  {viewType === "employee" ? (
-                    <>
-                      <td className="p-3">{p.employee_name}</td>
-                      <td className="p-3">{p.employee_code}</td>
-                      <td className="p-3">{p.department}</td>
-                    </>
-                  ) : (
-                    <td className="p-3">{p.employer_name}</td>
-                  )}
-
+                  <td className="p-3">
+                    {viewType === "employee"
+                      ? p.employee_name
+                      : p.employer_name}
+                  </td>
                   <td className="p-3">{p.month_year}</td>
                   <td className="p-3 font-semibold">₹{p.net_salary}</td>
 

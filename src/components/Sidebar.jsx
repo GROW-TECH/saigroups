@@ -16,7 +16,7 @@ import {
 
 const links = [
   { to: "/", label: "Dashboard", icon: HomeIcon, roles: ["employer", "employee"] },
-  { to: "/profile", label: "Profile", icon: UserIcon, roles: ["employer", "employee"] },
+  { to: "/companyprofile", label: "Company Profile", icon: UserIcon, roles: ["employer", "employee"] },
   { to: "/notifications", label: "Notifications", icon: ClipboardIcon, roles: ["employer", "employee"] },
   { to: "/tasks", label: "Tasks", icon: Squares2X2Icon, roles: ["employer", "employee"] },
 
@@ -26,6 +26,7 @@ const links = [
   { to: "/id-creation", label: "Add Employee", icon: IdentificationIcon, roles: ["employer"] },
   { to: "/invoices", label: "Invoices", icon: DocumentTextIcon, roles: ["employer"] },
   { to: "/payments", label: "Payments", icon: CurrencyRupeeIcon, roles: ["employer"] },
+  { to: "/files", label: "Attachment Files", icon: DocumentTextIcon, roles: ["employer"] },
   { to: "/addpayslip", label: "Create Payslip", icon: CurrencyRupeeIcon, roles: ["employer"] },
   { to: "/reports", label: "Reports", icon: ChartBarIcon, roles: ["employer"] },
   { to: "/epfo-requests", label: "EPFO Requests", icon: BanknotesIcon, roles: ["employer"] },

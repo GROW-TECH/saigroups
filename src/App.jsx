@@ -19,6 +19,8 @@ import Reports from "./pages/Reports.jsx";
 import Payments from "./pages/Payments.jsx";
 import Payslip from "./pages/Payslip.jsx";
 import Addpayslip from "./pages/AddPayslip.jsx";
+import Files from "./pages/Files.jsx";
+import CompanyProfile from "./pages/CompanyProfile.jsx";
 /* ================= ADMIN PAGES ================= */
 import AdminLogin from "./admin/login.jsx";
 import AdminDashboard from "./admin/Dashboard.jsx";
@@ -32,6 +34,7 @@ import AdminPayments from "./admin/payment.jsx";
 import AdminEpfoRequest from "./admin/EpfoRequests.jsx";
 import AdminEmployee from "./admin/employee.jsx"; // ✅ REQUIRED
 import AdminPayslip from "./admin/Payslip.jsx";
+import AdminFileAttachment from "./admin/FileAttachment.jsx";
 
 export default function App() {
   const navigate = useNavigate();
@@ -49,14 +52,15 @@ export default function App() {
   });
 
   /* USER LOGIN REDIRECT */
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-navigate("/");
-    } else {
-      localStorage.removeItem("user");
-    }
-  }, [user]);
+ useEffect(() => {
+  if (user) {
+    localStorage.setItem("user", JSON.stringify(user));
+    navigate("/companyprofile", { replace: true });
+  } else {
+    localStorage.removeItem("user");
+  }
+}, [user]);
+
 
   /* ADMIN LOGIN REDIRECT */
   useEffect(() => {
@@ -92,11 +96,13 @@ navigate("/");
         }
       >
         <Route path="/" element={requireAuth(<Dashboard />)} />
+        <Route path="/companyprofile" element={requireAuth(<CompanyProfile />)} />
         <Route path="/profile" element={requireAuth(<Profile />)} />
         <Route path="/notifications" element={requireAuth(<Notifications />)} />
         <Route path="/tasks" element={requireAuth(<Tasks user={user} />)} />
         <Route path="/forms" element={requireAuth(<Forms />)} />
         <Route path="/invoices" element={requireAuth(<Invoices />)} />
+        <Route path="/files" element={requireAuth(<Files />)} />
         <Route path="/id-creation" element={requireAuth(<IdCreation />)} />
         <Route path="/epfo-requests" element={requireAuth(<EpfoRequests />)} />
         
@@ -120,6 +126,7 @@ navigate("/");
   <Route path="profile" element={<AdminProfile />} />
   <Route path="tasks" element={<AdminTasks />} />
   <Route path="forms" element={<AdminForms />} />
+  <Route path="fileattachment" element={<AdminFileAttachment />} />
   <Route path="reports" element={<AdminReports />} />
   <Route path="invoices" element={<AdminInvoices />} />
   <Route path="notifications" element={<AdminNotifications />} />

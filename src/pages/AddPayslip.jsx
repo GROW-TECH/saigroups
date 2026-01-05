@@ -24,6 +24,7 @@ export default function AddPayslip() {
   }, []);
 
   const loadEmployees = () => {
+    // Now fetching directly from users table
     fetch(`${API_BASE}/payslips/employee.php`)
       .then(r => r.json())
       .then(res => {
@@ -151,7 +152,7 @@ export default function AddPayslip() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Payslip - ${payslip.employee_code}</title>
+        <title>Payslip - ${payslip.employee_name}</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -231,7 +232,7 @@ export default function AddPayslip() {
         </div>
 
         <div class="info-row">
-          <div><span class="info-label">Employee Code:</span> ${payslip.employee_code}</div>
+          <div><span class="info-label">Employee ID:</span> ${payslip.employee_id}</div>
           <div><span class="info-label">Employee Name:</span> ${payslip.employee_name}</div>
         </div>
 
@@ -308,7 +309,7 @@ export default function AddPayslip() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* EMPLOYEE */}
+            {/* EMPLOYEE - Updated to show user info */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Select Employee
@@ -321,7 +322,7 @@ export default function AddPayslip() {
                 <option value="">Choose an employee</option>
                 {employees.map(e => (
                   <option key={e.id} value={e.id}>
-                    {e.employee_code} – {e.name}
+                    {e.name} {e.email ? `(${e.email})` : ''}
                   </option>
                 ))}
               </select>
@@ -402,7 +403,7 @@ export default function AddPayslip() {
           </button>
         </div>
 
-        {/* PAYSLIPS TABLE */}
+        {/* PAYSLIPS TABLE - Updated column headers */}
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-gray-800">Payslip Records</h3>
@@ -425,7 +426,7 @@ export default function AddPayslip() {
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Employee Code
+                      Employee ID
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Employee Name
@@ -457,7 +458,7 @@ export default function AddPayslip() {
                   {payslips.map(p => (
                     <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {p.employee_code}
+                        {p.employee_id}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
                         {p.employee_name}

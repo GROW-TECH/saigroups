@@ -4,16 +4,20 @@ export default function IdCreation() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const emptyForm = {
-    user_id: "",
-    name: "",
-    email: "",
-    phone: "",
-    department: "",
-    designation: "",
-    epfo_number: "",
-    joining_date: "",
-  };
+ const emptyForm = {
+  user_id: "",
+  name: "",
+  email: "",
+  phone: "",
+  department: "",
+  designation: "",
+  epfo_number: "",
+  joining_date: "",
+  website: "",
+  esic_number: "",
+  balance: "",
+};
+
 
   const [form, setForm] = useState(emptyForm);
   const [showEdit, setShowEdit] = useState(false);
@@ -72,16 +76,20 @@ export default function IdCreation() {
   /* ---------- EDIT ---------- */
   const openEdit = (row) => {
     console.log("Opening edit for:", row);
-    setForm({
-      user_id: row.user_id || "",
-      name: row.name || "",
-      email: row.email || "",
-      phone: row.phone || "",
-      department: row.department || "",
-      designation: row.designation || "",
-      epfo_number: row.epfo_number || "",
-      joining_date: row.joining_date || "",
-    });
+   setForm({
+  user_id: row.user_id || "",
+  name: row.name || "",
+  email: row.email || "",
+  phone: row.phone || "",
+  department: row.department || "",
+  designation: row.designation || "",
+  epfo_number: row.epfo_number || "",
+  joining_date: row.joining_date || "",
+  website: row.website || "",
+  esic_number: row.esic_number || "",
+  balance: row.balance || "",
+});
+
     setShowEdit(true);
   };
 
@@ -154,6 +162,15 @@ export default function IdCreation() {
           <Input label="Designation" value={form.designation} onChange={v => setForm({ ...form, designation: v })} />
           <Input label="EPFO Number" value={form.epfo_number} onChange={v => setForm({ ...form, epfo_number: v })} />
           <Input type="date" label="Joining Date" value={form.joining_date} onChange={v => setForm({ ...form, joining_date: v })} />
+      <Input label="Website" value={form.website}
+  onChange={v => setForm({ ...form, website: v })} />
+
+<Input label="ESIC Number" value={form.esic_number}
+  onChange={v => setForm({ ...form, esic_number: v })} />
+
+<Input label="Balance" value={form.balance}
+  onChange={v => setForm({ ...form, balance: v })} />
+
         </div>
 
         <button
@@ -179,6 +196,9 @@ export default function IdCreation() {
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Department</th>
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Email</th>
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Phone</th>
+                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Website</th>
+                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">ESIC No</th>
+                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Balance</th>
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">EPFO Number</th>
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Joining Date</th>
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Actions</th>
@@ -200,6 +220,9 @@ export default function IdCreation() {
                     <td className="border border-gray-300 px-4 py-2 text-sm">{row.department || '-'}</td>
                     <td className="border border-gray-300 px-4 py-2 text-sm">{row.email || '-'}</td>
                     <td className="border border-gray-300 px-4 py-2 text-sm">{row.phone || '-'}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-sm">{row.website || '-'}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-sm">{row.esic_number || '-'}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-sm">{row.balance || '0'}</td>
                     <td className="border border-gray-300 px-4 py-2 text-sm">{row.epfo_number || '-'}</td>
                     <td className="border border-gray-300 px-4 py-2 text-sm">
                       {row.joining_date ? new Date(row.joining_date).toLocaleDateString() : '-'}
@@ -243,7 +266,17 @@ export default function IdCreation() {
                 <Input label="Department" value={form.department} onChange={v => setForm({ ...form, department: v })} />
                 <Input label="Designation" value={form.designation} onChange={v => setForm({ ...form, designation: v })} />
                 <Input label="EPFO Number" value={form.epfo_number} onChange={v => setForm({ ...form, epfo_number: v })} />
+               
                 <Input type="date" label="Joining Date" value={form.joining_date} onChange={v => setForm({ ...form, joining_date: v })} />
+             <Input label="Website" value={form.website}
+  onChange={v => setForm({ ...form, website: v })} />
+
+<Input label="ESIC Number" value={form.esic_number}
+  onChange={v => setForm({ ...form, esic_number: v })} />
+
+<Input label="Balance" value={form.balance}
+  onChange={v => setForm({ ...form, balance: v })} />
+
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
