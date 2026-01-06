@@ -23,7 +23,7 @@ const links = [
   { to: "/forms", label: "Forms", icon: ClipboardDocumentListIcon, roles: ["employee"] },
   { to: "/payslip", label: "Payslip", icon: DocumentTextIcon, roles: ["employee"] },
 
-  { to: "/id-creation", label: "Add Employee", icon: IdentificationIcon, roles: ["employer"] },
+  // { to: "/id-creation", label: "Add Employee", icon: IdentificationIcon, roles: ["employer"] },
   { to: "/invoices", label: "Invoices", icon: DocumentTextIcon, roles: ["employer"] },
   { to: "/payments", label: "Payments", icon: CurrencyRupeeIcon, roles: ["employer"] },
   { to: "/files", label: "Attachment Files", icon: DocumentTextIcon, roles: ["employer"] },

@@ -3,7 +3,7 @@ import StatusBadge from "../components/StatusBadge.jsx";
 
 const API = "https://projects.growtechnologies.in/srisaigroups/api";
 
-/* ---------- FILE TO BASE64 ---------- */
+/* FILE → BASE64 */
 const fileToBase64 = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -13,13 +13,8 @@ const fileToBase64 = (file) =>
   });
 
 export default function Invoices() {
-  /* ---------- ADMIN ---------- */
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  const employerId = admin?.id;
-
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [open, setOpen] = useState(false);
 
   const [form, setForm] = useState({
@@ -29,20 +24,12 @@ export default function Invoices() {
     upload_file: null,
   });
 
-  /* ---------- LOAD INVOICES ---------- */
+  /* LOAD INVOICES */
   const loadInvoices = () => {
-    if (!employerId) {
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
-    fetch(
-      `${API}/invoices/list.php?employer_id=${employerId}&_=${Date.now()}`,
-      { cache: "no-store" }
-    )
-      .then((res) => res.json())
-      .then((data) => {
+    fetch(`${API}/invoices/list.php?_=${Date.now()}`, { cache: "no-store" })
+      .then(res => res.json())
+      .then(data => {
         setInvoices(Array.isArray(data) ? data : []);
         setLoading(false);
       })
@@ -54,9 +41,9 @@ export default function Invoices() {
 
   useEffect(() => {
     loadInvoices();
-  }, [employerId]);
+  }, []);
 
-  /* ---------- CREATE INVOICE ---------- */
+  /* CREATE INVOICE */
   const createInvoice = async () => {
     if (!form.invoice_no || !form.invoice_date || !form.amount) {
       alert("Invoice number, date and amount are required");
@@ -64,7 +51,6 @@ export default function Invoices() {
     }
 
     let payload = {
-      employer_id: employerId,
       invoice_no: form.invoice_no,
       invoice_date: form.invoice_date,
       amount: form.amount,
@@ -75,35 +61,39 @@ export default function Invoices() {
       payload.file_base64 = await fileToBase64(form.upload_file);
     }
 
-    fetch(`${API}/invoices/create.php`, {
+    const res = await fetch(`${API}/invoices/create.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setOpen(false);
-        setForm({ invoice_no: "", invoice_date: "", amount: "", upload_file: null });
-        loadInvoices();
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("✅ Invoice created successfully");
+      setOpen(false);
+      setForm({
+        invoice_no: "",
+        invoice_date: "",
+        amount: "",
+        upload_file: null,
       });
+      loadInvoices();
+    } else {
+      alert(data.error || "Failed to create invoice");
+    }
   };
 
-  /* ---------- UPDATE STATUS ---------- */
+  /* UPDATE STATUS */
   const updateStatus = (invoiceNo, status) => {
     fetch(`${API}/invoices/update_status.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        employer_id: employerId,
-        invoice_no: invoiceNo,
-        status,
-      }),
+      body: JSON.stringify({ invoice_no: invoiceNo, status }),
     })
-      .then((res) => res.json())
+      .then(res => res.json())
       .then(() => loadInvoices());
   };
-
-  if (!admin) return <div className="p-4">Admin not logged in</div>;
 
   return (
     <div className="space-y-5">
@@ -119,81 +109,58 @@ export default function Invoices() {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-xl shadow border border-gray-100 overflow-x-auto">
+      <div className="bg-white rounded-xl shadow border overflow-x-auto">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">
-            Loading invoices...
-          </div>
+          <div className="p-8 text-center text-gray-500">Loading...</div>
         ) : invoices.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            No invoices found
-          </div>
+          <div className="p-8 text-center text-gray-500">No invoices found</div>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead className="bg-gray-50 text-gray-600">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
               <tr>
                 <th className="px-5 py-3 text-left">Invoice No</th>
-                <th className="px-5 py-3 text-right">Amount (₹)</th>
-                <th className="px-5 py-3 text-left">Status</th>
-                <th className="px-5 py-3 text-left">Invoice Date</th>
+                <th className="px-5 py-3 text-right">Amount</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3">Date</th>
                 <th className="px-5 py-3 text-center">Action</th>
-                <th className="px-5 py-3 text-center">Invoice</th>
+                <th className="px-5 py-3 text-center">File</th>
               </tr>
             </thead>
-
             <tbody>
-              {invoices.map((inv) => (
-                <tr key={inv.id} className="border-t hover:bg-gray-50">
-                  <td className="px-5 py-3 font-medium">
-                    {inv.id}
-                  </td>
-
+              {invoices.map(inv => (
+                <tr key={inv.id} className="border-t">
+                  <td className="px-5 py-3 font-medium">{inv.invoice_no}</td>
                   <td className="px-5 py-3 text-right">
                     ₹{Number(inv.amount).toLocaleString()}
                   </td>
-
                   <td className="px-5 py-3">
                     <StatusBadge status={inv.status || "pending"} />
                   </td>
-
-                  <td className="px-5 py-3">
-                    {inv.date}
-                  </td>
-
+                  <td className="px-5 py-3">{inv.invoice_date}</td>
                   <td className="px-5 py-3 text-center">
                     {inv.status === "pending" ? (
                       <button
-                        onClick={() => updateStatus(inv.id, "paid")}
-                        className="text-xs bg-green-600 text-white px-4 py-1.5 rounded-md"
+                        onClick={() => updateStatus(inv.invoice_no, "paid")}
+                        className="bg-green-600 text-white text-xs px-3 py-1 rounded"
                       >
-                        Mark as Paid
+                        Mark Paid
                       </button>
                     ) : (
-                      <span className="text-xs text-gray-400">—</span>
+                      "—"
                     )}
                   </td>
-
-                  <td className="px-5 py-3 text-center space-x-3">
+                  <td className="px-5 py-3 text-center">
                     {inv.upload_file ? (
-                      <>
-                        <a
-                          href={`${API.replace("/api", "")}/${inv.upload_file}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-600 underline text-xs"
-                        >
-                          View
-                        </a>
-                        <a
-                          href={`${API.replace("/api", "")}/${inv.upload_file}`}
-                          download
-                          className="text-green-600 underline text-xs"
-                        >
-                          Download
-                        </a>
-                      </>
+                      <a
+                        href={`${API.replace("/api", "")}/${inv.upload_file}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 underline text-xs"
+                      >
+                        View
+                      </a>
                     ) : (
-                      <span className="text-gray-400 text-xs">—</span>
+                      "—"
                     )}
                   </td>
                 </tr>
@@ -203,55 +170,40 @@ export default function Invoices() {
         )}
       </div>
 
-      {/* CREATE MODAL */}
+      {/* MODAL */}
       {open && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
           <div className="bg-white w-96 rounded-xl p-5 space-y-4">
-            <h4 className="font-semibold text-lg">Create Invoice</h4>
+            <h4 className="font-semibold">Create Invoice</h4>
 
             <input
-              type="text"
-              className="w-full border rounded px-3 py-2"
-              placeholder="Invoice Number (e.g., INV001)"
+              className="w-full border px-3 py-2 rounded"
+              placeholder="Invoice No"
               value={form.invoice_no}
-              onChange={(e) =>
-                setForm({ ...form, invoice_no: e.target.value })
-              }
+              onChange={e => setForm({ ...form, invoice_no: e.target.value })}
             />
 
             <input
               type="date"
-              className="w-full border rounded px-3 py-2"
+              className="w-full border px-3 py-2 rounded"
               value={form.invoice_date}
-              onChange={(e) =>
-                setForm({ ...form, invoice_date: e.target.value })
-              }
+              onChange={e => setForm({ ...form, invoice_date: e.target.value })}
             />
 
             <input
               type="number"
-              className="w-full border rounded px-3 py-2"
+              className="w-full border px-3 py-2 rounded"
               placeholder="Amount"
               value={form.amount}
-              onChange={(e) =>
-                setForm({ ...form, amount: e.target.value })
-              }
+              onChange={e => setForm({ ...form, amount: e.target.value })}
             />
 
             <input
               type="file"
-              className="w-full border rounded px-3 py-2 text-sm"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                if (file.size > 5 * 1024 * 1024) {
-                  alert("File must be under 5 MB");
-                  return;
-                }
-
-                setForm({ ...form, upload_file: file });
-              }}
+              className="w-full border px-3 py-2 rounded text-sm"
+              onChange={e =>
+                setForm({ ...form, upload_file: e.target.files[0] })
+              }
             />
 
             <div className="flex justify-end gap-2">

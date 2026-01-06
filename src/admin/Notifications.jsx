@@ -2,6 +2,15 @@ import React, { useEffect, useState } from "react";
 
 const BASE = "https://projects.growtechnologies.in/srisaigroups/api";
 
+/* ---------- FILE TO BASE64 ---------- */
+const fileToBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
 export default function AdminNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -11,39 +20,57 @@ export default function AdminNotifications() {
   const [form, setForm] = useState({
     title: "",
     message: "",
-    user_type: "employee"
+    user_type: "employee",
+    file: null
   });
 
+  const loadData = async () => {
+    try {
+      const res = await fetch(
+        `${BASE}/notifications/list.php?ts=${Date.now()}`,
+        { cache: "no-store" }
+      );
 
- const loadData = async () => {
-  try {
-    const res = await fetch(
-      `${BASE}/notifications/list.php?ts=${Date.now()}`,
-      { cache: "no-store" }
-    );
+      const json = await res.json();
+      console.log("API Response:", json);
 
-    const json = await res.json();
-    console.log("API Response:", json);
-
-if (json.status === "success" && Array.isArray(json.data)) {
-      setNotifications(json.data);
-    } else {
+      if (json.status === "success" && Array.isArray(json.data)) {
+        setNotifications(json.data);
+      } else {
+        setNotifications([]);
+      }
+    } catch (err) {
+      console.error("Load error", err);
       setNotifications([]);
     }
-  } catch (err) {
-    console.error("Load error", err);
-    setNotifications([]);
-  }
-};
-
-
+  };
 
   useEffect(() => {
     loadData();
   }, []);
-useEffect(() => {
-  console.log("Notifications state:", notifications);
-}, [notifications]);
+
+  /* HANDLE FILE SELECTION */
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File must be under 10 MB");
+      return;
+    }
+
+    // Validate file type
+    const ext = file.name.split('.').pop().toLowerCase();
+    const allowed = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'xls', 'xlsx'];
+    if (!allowed.includes(ext)) {
+      alert("Invalid file type. Allowed: PDF, DOC, DOCX, JPG, PNG, XLS, XLSX");
+      return;
+    }
+
+    setForm({ ...form, file });
+  };
+
   /* SUBMIT NOTIFICATION (CREATE OR UPDATE) */
   const submit = async () => {
     if (!form.title || !form.message || !form.user_type) {
@@ -54,24 +81,39 @@ useEffect(() => {
     setLoading(true);
 
     try {
+      let payload = {
+        title: form.title,
+        message: form.message,
+        user_type: form.user_type
+      };
+
+      // Add file if selected
+      if (form.file) {
+        const base64 = await fileToBase64(form.file);
+        payload.file = {
+          name: form.file.name,
+          base64: base64
+        };
+      }
+
       const url = editMode 
         ? `${BASE}/notifications/update.php` 
         : `${BASE}/notifications/add.php`;
       
-      const body = editMode 
-        ? { ...form, id: editId }
-        : form;
+      if (editMode) {
+        payload.id = editId;
+      }
 
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
 
       if (data.status === "success") {
-        setForm({ title: "", message: "", user_type: "employee" });
+        setForm({ title: "", message: "", user_type: "employee", file: null });
         setEditMode(false);
         setEditId(null);
         loadData();
@@ -94,7 +136,8 @@ useEffect(() => {
     setForm({
       title: notification.title,
       message: notification.message,
-      user_type: notification.user_type
+      user_type: notification.user_type,
+      file: null
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -103,35 +146,33 @@ useEffect(() => {
   const cancelEdit = () => {
     setEditMode(false);
     setEditId(null);
-    setForm({ title: "", message: "", user_type: "employee" });
+    setForm({ title: "", message: "", user_type: "employee", file: null });
   };
 
   /* DELETE NOTIFICATION */
   const handleDelete = async (id) => {
-  if (!confirm("Are you sure you want to delete this notification?")) return;
+    if (!confirm("Are you sure you want to delete this notification?")) return;
 
-  try {
-    const res = await fetch(`${BASE}/notifications/delete.php`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id })
-    });
+    try {
+      const res = await fetch(`${BASE}/notifications/delete.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
 
-    const data = await res.json();
-    console.log("Delete response:", data);
+      const data = await res.json();
 
-    if (data.success === true) {
-      alert("Notification deleted successfully!");
-      loadData();
-    } else {
-      alert(data.message || data.error || "Failed to delete notification");
+      if (data.success === true) {
+        alert("Notification deleted successfully!");
+        loadData();
+      } else {
+        alert(data.message || data.error || "Failed to delete notification");
+      }
+    } catch (err) {
+      console.error("Delete error", err);
+      alert("Server error while deleting");
     }
-  } catch (err) {
-    console.error("Delete error", err);
-    alert("Server error while deleting");
-  }
-};
-
+  };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
@@ -201,6 +242,52 @@ useEffect(() => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
+                Attach File (Optional)
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="notification-file"
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
+                  onChange={handleFileChange}
+                />
+                <label
+                  htmlFor="notification-file"
+                  className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg px-4 py-3 cursor-pointer hover:border-orange-400 transition-all bg-gray-50"
+                >
+                  {form.file ? (
+                    <div className="flex items-center gap-2 text-sm">
+                      <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="text-gray-700 truncate max-w-[300px]">{form.file.name}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setForm({ ...form, file: null });
+                        }}
+                        className="ml-2 text-red-600 hover:text-red-700"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                      </svg>
+                      Click to attach file (PDF, DOC, Image, Excel)
+                    </div>
+                  )}
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Max file size: 10MB</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Send To
               </label>
               <select
@@ -234,18 +321,6 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* DEBUG INFO */}
-        {/* <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">
-            <strong>Debug:</strong> Total notifications loaded: {notifications.length}
-          </p>
-          {notifications.length > 0 && (
-            <pre className="text-xs mt-2 text-yellow-700 overflow-auto">
-              {JSON.stringify(notifications[0], null, 2)}
-            </pre>
-          )}
-        </div> */}
-
         {/* NOTIFICATIONS TABLE */}
         <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4">
@@ -275,12 +350,14 @@ useEffect(() => {
                       Message
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Attachment
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Sent To
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Date & Time
                     </th>
-                   
                     <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Actions
                     </th>
@@ -301,6 +378,23 @@ useEffect(() => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        {n.file_path ? (
+                          <a
+                            href={`${BASE.replace('/api', '')}/${n.file_path}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                            View File
+                          </a>
+                        ) : (
+                          <span className="text-gray-400 text-xs">No file</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                           n.user_type === 'employer' 
                             ? 'bg-purple-100 text-purple-800' 
@@ -311,25 +405,22 @@ useEffect(() => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                           {formatDate(n.created_at)}
+                          {formatDate(n.created_at)}
                         </div>
                       </td>
-                      
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => handleEdit(n)}
                             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium transition"
-                            title="Edit"
                           >
-                             Edit
+                            Edit
                           </button>
                           <button
                             onClick={() => handleDelete(n.id)}
                             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm font-medium transition"
-                            title="Delete"
                           >
-                             Delete
+                            Delete
                           </button>
                         </div>
                       </td>

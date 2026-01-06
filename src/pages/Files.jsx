@@ -7,21 +7,32 @@ export default function EmployeeFilesView() {
   const [loading, setLoading] = useState(true);
   const [expandedGroup, setExpandedGroup] = useState(null);
 
-  /* ---------- LOAD FILE GROUPS ---------- */
-  const loadFileGroups = () => {
-    setLoading(true);
-    fetch(`${API}/files/list.php?_=${Date.now()}`, { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        setFileGroups(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error loading files:", err);
-        setFileGroups([]);
-        setLoading(false);
-      });
-  };
+ const user = JSON.parse(localStorage.getItem("user"));
+const userId = user?.id;
+
+const loadFileGroups = () => {
+  if (!userId) {
+    setFileGroups([]);
+    setLoading(false);
+    return;
+  }
+
+  setLoading(true);
+  fetch(
+    `${API}/files/userfile.php?user_id=${userId}&_=${Date.now()}`,
+    { cache: "no-store" }
+  )
+    .then(res => res.json())
+    .then(data => {
+      setFileGroups(Array.isArray(data) ? data : []);
+      setLoading(false);
+    })
+    .catch(() => {
+      setFileGroups([]);
+      setLoading(false);
+    });
+};
+
 
   useEffect(() => {
     loadFileGroups();

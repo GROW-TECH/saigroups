@@ -13,14 +13,31 @@ const fileToBase64 = (file) =>
 
 export default function AdminFileAttachment() {
   const [fileGroups, setFileGroups] = useState([]);
+  const [employers, setEmployers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
   const [form, setForm] = useState({
+    user_id: "",
+    file_date: "",
     entries: [
       { title: "", file: null }
     ]
   });
+
+  /* ---------- LOAD EMPLOYERS ---------- */
+  const loadEmployers = () => {
+    fetch(`${API}/employers/list.php?_=${Date.now()}`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Employers loaded:", data);
+        setEmployers(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error("Error loading employers:", err);
+        setEmployers([]);
+      });
+  };
 
   /* ---------- LOAD FILE GROUPS ---------- */
   const loadFileGroups = () => {
@@ -28,18 +45,19 @@ export default function AdminFileAttachment() {
     fetch(`${API}/files/list.php?_=${Date.now()}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        console.log("API Response:", data); // Debug log
+        console.log("API Response:", data);
         setFileGroups(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Error loading file groups:", err); // Debug log
+        console.error("Error loading file groups:", err);
         setFileGroups([]);
         setLoading(false);
       });
   };
 
   useEffect(() => {
+    loadEmployers();
     loadFileGroups();
   }, []);
 
@@ -89,6 +107,18 @@ export default function AdminFileAttachment() {
 
   /* ---------- CREATE FILE GROUP ---------- */
   const createFileGroup = async () => {
+    // Validate user selection
+    if (!form.user_id) {
+      alert("Please select an employer");
+      return;
+    }
+
+    // Validate date selection
+    if (!form.file_date) {
+      alert("Please select a date");
+      return;
+    }
+
     // Validate all entries have title and file
     for (let i = 0; i < form.entries.length; i++) {
       if (!form.entries[i].title) {
@@ -112,6 +142,8 @@ export default function AdminFileAttachment() {
     const titles = form.entries.map(entry => entry.title);
 
     let payload = {
+      user_id: form.user_id,
+      file_date: form.file_date,
       titles: titles,
       files: filesData,
     };
@@ -126,7 +158,7 @@ export default function AdminFileAttachment() {
         if (data.success) {
           alert("Files uploaded successfully!");
           setOpen(false);
-          setForm({ entries: [{ title: "", file: null }] });
+          setForm({ user_id: "", file_date: "", entries: [{ title: "", file: null }] });
           loadFileGroups();
         } else {
           alert(data.error || "Error uploading files");
@@ -208,6 +240,10 @@ export default function AdminFileAttachment() {
                     <th className="px-4 py-4 text-left text-xs font-semibold text-orange-800 uppercase tracking-wider">
                       S.No
                     </th>
+                    
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-orange-800 uppercase tracking-wider">
+                      Employer Name
+                    </th>
                     <th className="px-4 py-4 text-left text-xs font-semibold text-orange-800 uppercase tracking-wider">
                       Month/Year
                     </th>
@@ -243,8 +279,13 @@ export default function AdminFileAttachment() {
                           {index + 1}
                         </td>
 
-                        <td className="px-4 py-4 text-sm text-gray-700">
-                          {group.created_at ? group.created_at.substring(0, 7) : '-'}
+                        <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                          {group.user_name || '-'}
+                        </td>
+
+
+                        <td className="px-4 py-4 text-sm text-gray-700 font-medium">
+                          {group.file_date || '-'}
                         </td>
 
                         {/* Dynamic columns for files */}
@@ -263,7 +304,7 @@ export default function AdminFileAttachment() {
                                 <span className="truncate max-w-[150px]">{filesByIndex[colIndex].file_name}</span>
                               </a>
                             ) : (
-                              <span className="text-gray-400 text-xs">No data available in table</span>
+                              <span className="text-gray-400 text-xs">No file</span>
                             )}
                           </td>
                         ))}
@@ -301,6 +342,39 @@ export default function AdminFileAttachment() {
             </div>
 
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
+              {/* EMPLOYER SELECTION */}
+              <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Select Employer *
+                </label>
+                <select
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  value={form.user_id}
+                  onChange={(e) => setForm({ ...form, user_id: e.target.value })}
+                >
+                  <option value="">-- Choose an employer --</option>
+                  {employers.map((emp) => (
+                    <option key={emp.user_id} value={emp.user_id}>
+                      {emp.user_name} - {emp.organization_name} {emp.organization_code ? `(${emp.organization_code})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* DATE SELECTION */}
+              <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Select Date *
+                </label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  value={form.file_date}
+                  onChange={(e) => setForm({ ...form, file_date: e.target.value })}
+                />
+              </div>
+
+              {/* FILE ENTRIES */}
               {form.entries.map((entry, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-start justify-between mb-3">
@@ -386,7 +460,7 @@ export default function AdminFileAttachment() {
               <button
                 onClick={() => {
                   setOpen(false);
-                  setForm({ entries: [{ title: "", file: null }] });
+                  setForm({ user_id: "", file_date: "", entries: [{ title: "", file: null }] });
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 font-medium transition-all"
               >
