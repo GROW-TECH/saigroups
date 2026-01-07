@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import StatusBadge from "../components/StatusBadge.jsx";
 
+const API = "https://projects.growtechnologies.in/srisaigroups/api";
+
 export default function Invoices() {
+  const user = JSON.parse(localStorage.getItem("user"));
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const EMPLOYER_ID = 7;
-  const BASE_URL = "https://projects.growtechnologies.in/srisaigroups/";
-
-  /* ---------- LOAD INVOICES ---------- */
+  /* ---------- LOAD ONLY LOGGED-IN USER INVOICES ---------- */
   useEffect(() => {
-    fetch(`${BASE_URL}api/invoices/list.php?employer_id=${EMPLOYER_ID}`, {
-      cache: "no-store"
+    if (!user?.id) return;
+
+    fetch(`${API}/invoices/list.php?user_id=${user.id}`, {
+      cache: "no-store",
     })
       .then(res => res.json())
       .then(data => {
@@ -22,71 +24,94 @@ export default function Invoices() {
         setInvoices([]);
         setLoading(false);
       });
-  }, []);
+  }, [user?.id]);
 
   return (
-    <div className="space-y-5">
-      <h3 className="text-lg font-semibold">Invoices</h3>
+    <div className="space-y-6">
+      {/* PAGE TITLE */}
+      <h3 className="text-lg font-semibold">My Invoices</h3>
 
-      <div className="bg-white rounded-xl shadow border overflow-x-auto">
+      {/* TABLE CARD */}
+      <div className="bg-white rounded-xl shadow-sm border p-6">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <div className="text-gray-500 text-center py-6">
+            Loading invoices...
+          </div>
+        ) : invoices.length === 0 ? (
+          <div className="text-gray-500 text-center py-6">
+            No invoices found
+          </div>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-5 py-3 text-left">Invoice No</th>
-                <th className="px-5 py-3 text-right">Amount</th>
-                <th className="px-5 py-3 text-left">Status</th>
-                <th className="px-5 py-3 text-left">Invoice Date</th>
-                <th className="px-5 py-3 text-left">Invoice File</th>
-                <th className="px-5 py-3 text-center">Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {invoices.map((inv, i) => (
-                <tr key={i} className="border-t">
-                  <td className="px-5 py-3">{inv.id}</td>
-
-                  <td className="px-5 py-3 text-right">
-                    {Number(inv.amount).toLocaleString()}
-                  </td>
-
-                  <td className="px-5 py-3">
-                    <StatusBadge status={inv.status} />
-                  </td>
-
-                  <td className="px-5 py-3">{inv.date}</td>
-
-                  {/* Invoice File */}
-                  <td className="px-5 py-3">
-                    {inv.upload_file ? inv.upload_file : "----"}
-                  </td>
-
-                  {/* Action – ALWAYS SHOW DOWNLOAD */}
-                  <td className="px-5 py-3 text-center">
-                    <a
-                      href={
-                        inv.upload_file
-                          ? `${BASE_URL}${inv.upload_file}`
-                          : "#"
-                      }
-                      className="bg-green-600 text-white px-3 py-1 rounded text-xs"
-                      onClick={e => {
-                        if (!inv.upload_file) {
-                          e.preventDefault();
-                          alert("Invoice file not uploaded by admin yet");
-                        }
-                      }}
-                    >
-                      Download
-                    </a>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              {/* ---------- TABLE HEADER ---------- */}
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left font-medium text-gray-700">
+                    Invoice No
+                  </th>
+                  <th className="px-6 py-3 text-right font-medium text-gray-700">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-center font-medium text-gray-700">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-center font-medium text-gray-700">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-center font-medium text-gray-700">
+                    File
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              {/* ---------- TABLE BODY ---------- */}
+              <tbody>
+                {invoices.map(inv => (
+                  <tr
+                    key={inv.id}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
+                    {/* Invoice No */}
+                    <td className="px-6 py-3 text-left font-medium">
+                      {inv.invoice_no}
+                    </td>
+
+                    {/* Amount */}
+                    <td className="px-6 py-3 text-right">
+                      ₹{Number(inv.amount).toLocaleString()}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-6 py-3 text-center">
+                      <StatusBadge status={inv.status || "pending"} />
+                    </td>
+
+                    {/* Date */}
+                    <td className="px-6 py-3 text-center">
+                      {inv.invoice_date}
+                    </td>
+
+                    {/* File */}
+                    <td className="px-6 py-3 text-center">
+                      {inv.upload_file ? (
+                        <a
+                          href={`${API.replace("/api", "")}/${inv.upload_file}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 hover:underline text-sm font-medium"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

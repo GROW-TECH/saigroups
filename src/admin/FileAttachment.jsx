@@ -20,6 +20,7 @@ export default function AdminFileAttachment() {
   const [form, setForm] = useState({
     user_id: "",
     file_date: "",
+    main_title: "",
     entries: [
       { title: "", file: null }
     ]
@@ -119,6 +120,12 @@ export default function AdminFileAttachment() {
       return;
     }
 
+    // Validate main title
+    if (!form.main_title.trim()) {
+      alert("Please enter a main title");
+      return;
+    }
+
     // Validate all entries have title and file
     for (let i = 0; i < form.entries.length; i++) {
       if (!form.entries[i].title) {
@@ -144,6 +151,7 @@ export default function AdminFileAttachment() {
     let payload = {
       user_id: form.user_id,
       file_date: form.file_date,
+      main_title: form.main_title,
       titles: titles,
       files: filesData,
     };
@@ -158,7 +166,7 @@ export default function AdminFileAttachment() {
         if (data.success) {
           alert("Files uploaded successfully!");
           setOpen(false);
-          setForm({ user_id: "", file_date: "", entries: [{ title: "", file: null }] });
+          setForm({ user_id: "", file_date: "", main_title: "", entries: [{ title: "", file: null }] });
           loadFileGroups();
         } else {
           alert(data.error || "Error uploading files");
@@ -240,7 +248,9 @@ export default function AdminFileAttachment() {
                     <th className="px-4 py-4 text-left text-xs font-semibold text-orange-800 uppercase tracking-wider">
                       S.No
                     </th>
-                    
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-orange-800 uppercase tracking-wider">
+                      Main Title
+                    </th>
                     <th className="px-4 py-4 text-left text-xs font-semibold text-orange-800 uppercase tracking-wider">
                       Employer Name
                     </th>
@@ -279,10 +289,13 @@ export default function AdminFileAttachment() {
                           {index + 1}
                         </td>
 
+                        <td className="px-4 py-4 text-sm font-semibold text-gray-900">
+                          {group.main_title || '-'}
+                        </td>
+
                         <td className="px-4 py-4 text-sm font-medium text-gray-900">
                           {group.user_name || '-'}
                         </td>
-
 
                         <td className="px-4 py-4 text-sm text-gray-700 font-medium">
                           {group.file_date || '-'}
@@ -374,6 +387,20 @@ export default function AdminFileAttachment() {
                 />
               </div>
 
+              {/* MAIN TITLE */}
+              <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Main Title *
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="e.g., Monthly Compliance Documents"
+                  value={form.main_title}
+                  onChange={(e) => setForm({ ...form, main_title: e.target.value })}
+                />
+              </div>
+
               {/* FILE ENTRIES */}
               {form.entries.map((entry, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -460,7 +487,7 @@ export default function AdminFileAttachment() {
               <button
                 onClick={() => {
                   setOpen(false);
-                  setForm({ user_id: "", file_date: "", entries: [{ title: "", file: null }] });
+                  setForm({ user_id: "", file_date: "", main_title: "", entries: [{ title: "", file: null }] });
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 font-medium transition-all"
               >

@@ -110,7 +110,9 @@ const loadFileGroups = () => {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 text-lg">{group.title || `File Group ${index + 1}`}</h3>
+<h3 className="font-semibold text-gray-900 text-lg">
+  {group.main_title || group.titles?.[0] || `File Group ${index + 1}`}
+</h3>
                         <div className="flex items-center gap-4 mt-1">
                           <span className="flex items-center text-sm text-gray-500">
                             <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

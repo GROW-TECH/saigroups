@@ -16,17 +16,23 @@ export default function CompanyProfile() {
     // Fetch company profile data with user_id
     fetch(`${API}/company/profile.php?user_id=${user.id}`)
       .then((res) => res.json())
-     .then((data) => {
+    .then((data) => {
   console.log("Company Profile Response:", data);
+console.log(company);
 
-  if (data.success && data.data) {
+  if (
+    data.success &&
+    data.data &&
+    Object.keys(data.data).length > 0
+  ) {
     setCompany(data.data);
   } else {
-    setCompany(null); // important for employee
+    setCompany(null);
   }
 
   setLoading(false);
 })
+
 
       .catch((err) => {
         console.error("Error loading company profile:", err);
@@ -181,6 +187,18 @@ export default function CompanyProfile() {
                 <label className="text-xs font-semibold text-green-800 uppercase tracking-wide">ESIC Number</label>
                 <p className="text-gray-900 font-mono font-semibold mt-1">{company.esic_number || "N/A"}</p>
               </div>
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+  <label className="text-xs font-semibold text-green-800 uppercase tracking-wide">
+    Digital Key Expiry Date
+  </label>
+  <p className="text-gray-900 font-mono font-semibold mt-1">
+  {company.digital_key
+  ? new Date(company.digital_key).toLocaleDateString("en-IN")
+  : "N/A"}
+
+  </p>
+</div>
+
             </div>
           </div>
 

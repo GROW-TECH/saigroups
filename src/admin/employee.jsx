@@ -42,6 +42,7 @@ balance: "",
   employer_epfo_number: "",
   esic_number: "",
   balance: "",
+  Digital_key: "",
 });
 
 
@@ -122,6 +123,7 @@ balance: "",
     esic_number: form.esic_number,
     gst_number: form.gst_number,
     balance: form.balance,
+    Digital_key: form.Digital_key,
   };
 
   const res = await fetch(url, {
@@ -168,6 +170,7 @@ balance: "",
   employer_epfo_number: "",
   esic_number: "",
   balance: "",
+  Digital_key: "",
 });
 
 };
@@ -204,6 +207,7 @@ balance: "",
   employer_epfo_number: "",
   esic_number: "",
   balance: "",
+  Digital_key: "",
 };
 
     
@@ -254,6 +258,7 @@ balance: emp.balance || "",
           employer_epfo_number: emp.epfo_number || "",
           esic_number: emp.esic_number || "",
           balance: emp.balance || "",
+          Digital_key: emp.Digital_key || "",
         }
   );
 
@@ -574,6 +579,16 @@ balance: emp.balance || "",
         className="input"
       />
     </div>
+    <div>
+  <label>Digital Key</label>
+  <input
+    value={form.Digital_key}
+    onChange={e =>
+      setForm({ ...form, Digital_key: e.target.value })
+    }
+    className="input"
+type="date"  />
+</div>
 
     <div className="col-span-2">
       <label>Address</label>
@@ -646,6 +661,11 @@ balance: emp.balance || "",
                     <th className="p-3 text-left text-sm font-semibold text-gray-700">Org Code</th>
                     <th className="p-3 text-left text-sm font-semibold text-gray-700">GST Number</th>
                     <th className="p-3 text-left text-sm font-semibold text-gray-700">Balance</th>
+                    <th className="p-3 text-left text-sm font-semibold text-gray-700">
+  Digital Key
+</th>
+
+                    {/* <th className="p-3 text-left text-sm font-semibold text-gray-700">Digital Key</th> */}
                   </>
                 )}
                 
@@ -685,10 +705,22 @@ balance: emp.balance || "",
                   {/* Employer Data */}
                   {type === "employer" && (
                     <>
-                      <td className="p-3 text-sm text-gray-700">{emp.organization_name || "-"}</td>
-                      <td className="p-3 text-sm text-gray-700">{emp.organization_code || "-"}</td>
-                      <td className="p-3 text-sm text-gray-700">{emp.gst_number || "-"}</td>
-                      <td className="p-3 text-sm text-gray-700">{emp.balance || "-"}</td>
+                      <td className="p-3 text-sm text-gray-700">
+  {emp.organization_name || "-"}
+</td>
+<td className="p-3 text-sm text-gray-700">
+  {emp.organization_code || "-"}
+</td>
+<td className="p-3 text-sm text-gray-700">
+  {emp.gst_number || "-"}
+</td>
+<td className="p-3 text-sm text-gray-700">
+  {emp.balance || "-"}
+</td>
+<td className="p-3 text-sm text-gray-700">
+  {emp.Digital_key || "-"}
+</td>
+
                     </>
                   )}
                   
