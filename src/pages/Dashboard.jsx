@@ -133,23 +133,7 @@ export default function Dashboard() {
       {/* ================= EMPLOYER ================= */}
       {!isEmployee && (
         <>
-          <div className="bg-white border rounded-xl p-6 shadow-sm">
-            <h3 className="font-semibold mb-3">Invoices</h3>
-            <p className="text-sm text-gray-700">
-              Paid: <span className="font-medium">{data.invoices.paid}</span>
-            </p>
-            <p className="text-sm text-gray-700">
-              Pending:{" "}
-              <span className="font-medium">{data.invoices.pending}</span>
-            </p>
-
-            <Link
-              to="/invoices"
-              className="inline-block mt-4 px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
-            >
-              View Invoices
-            </Link>
-          </div>
+        
 
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             <h3 className="font-semibold mb-3">Quick Actions</h3>
@@ -165,7 +149,7 @@ export default function Dashboard() {
                 to="/payments"
                 className="border px-4 py-2 rounded-lg text-sm hover:bg-gray-50"
               >
-                Take Payment
+                View Payment
               </Link>
             </div>
           </div>

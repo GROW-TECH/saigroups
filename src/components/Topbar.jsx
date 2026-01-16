@@ -57,16 +57,7 @@ export default function Topbar({ user, onLogout, onMenuClick }) {
         <div className="flex items-center gap-4">
 
           {/* 🔔 Notifications */}
-          {user && (
-            <Link to="/notifications" className="relative">
-              <BellIcon className="w-6 h-6 text-gray-600 hover:text-orange-600" />
-              {count > 0 && (
-                <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full px-1.5">
-                  {count}
-                </span>
-              )}
-            </Link>
-          )}
+         
 
           {/* USER */}
           <div className="hidden sm:flex flex-col text-right">

@@ -12,6 +12,8 @@ import Profile from "./pages/Profile.jsx";
 import Notifications from "./pages/Notifications.jsx";
 import Tasks from "./pages/Tasks.jsx";
 import Forms from "./pages/Forms.jsx";
+import UploadForms from "./pages/uploadforms.jsx";
+
 import Invoices from "./pages/Invoices.jsx";
 import IdCreation from "./pages/IdCreation.jsx";
 import EpfoRequests from "./pages/EpfoRequests.jsx";
@@ -21,6 +23,8 @@ import Payslip from "./pages/Payslip.jsx";
 import Addpayslip from "./pages/AddPayslip.jsx";
 import Files from "./pages/Files.jsx";
 import CompanyProfile from "./pages/CompanyProfile.jsx";
+
+
 /* ================= ADMIN PAGES ================= */
 import AdminLogin from "./admin/login.jsx";
 import AdminDashboard from "./admin/Dashboard.jsx";
@@ -110,6 +114,12 @@ export default function App() {
         <Route path="/payments" element={requireAuth(<Payments />)} />
         <Route path="/addpayslip" element={requireAuth(<Addpayslip />)} />
         <Route path="/payslip" element={requireAuth(<Payslip user={user} />)} />
+       <Route
+  path="/uploadforms"
+  element={requireAuth(<UploadForms />)}
+/>
+
+        
       </Route>
 
      {/* ================= ADMIN ================= */}
